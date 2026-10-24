@@ -1,0 +1,24 @@
+name: Run tutorial (dry run)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: node index.js
+        run: |
+          date -u '+runner UTC time: %Y-%m-%dT%H:%M:%SZ'
+          node --version
+          node index.js 2>&1 | tee run-output.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: run-output
+          path: run-output.txt
