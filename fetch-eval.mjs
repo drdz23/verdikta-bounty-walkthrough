@@ -9,3 +9,5 @@ for(const id of ids){
   console.log(`\n=== evaluation sub ${id} ===`, e.s);
   console.log(e.t.slice(0,6000));
 }
+
+// retrigger 1792870445

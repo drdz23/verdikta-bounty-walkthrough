@@ -1,5 +1,6 @@
 name: fetch
 on: { workflow_dispatch: {}, push: { paths: ['fetch-eval.mjs'] } }
+permissions: { contents: write }
 jobs:
   f:
     runs-on: ubuntu-latest
@@ -8,5 +9,8 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: node fetch-eval.mjs 2>&1 | tee eval-dump.txt
-      - uses: actions/upload-artifact@v4
-        with: { name: eval-dump, path: eval-dump.txt }
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add eval-dump.txt && git commit -m "eval dump" || echo nothing
+          git push
