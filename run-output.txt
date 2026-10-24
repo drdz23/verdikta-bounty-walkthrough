@@ -1,0 +1,77 @@
+$ node index.js
+# GitHub Actions run https://github.com/drdz23/verdikta-bounty-walkthrough/actions/runs/40125746042
+# runner: Linux 6.17.0-1022-azure, node v22.23.3, UTC 2026-10-24T19:32:20Z
+verdikta-bounty-walkthrough (DRY RUN - nothing is signed or sent)
+run started: 2026-10-24T19:32:20.812Z (UTC)
+api: https://bounties.verdikta.org/api   rpc: https://mainnet.base.org
+------------------------------------------------------------------------
+[1] Fetching the public bounty list: GET /api/jobs.txt
+    list header: "VERDIKTA BOUNTIES - 2026-10-24T19:32:21.135Z"
+    parsed 11 open bounties:
+      #330  0.005 ETH  167.5h left  1 subs  Build a working agent tutorial: a script that find
+      #322  0.0025 ETH  48.5h left  4 subs  Postingan tentang Verdikta dalam Bahasa Indonesia
+      #320  0.0025 ETH  36.8h left  3 subs  Verdikta awareness post in German (Deutsch)
+      #316  0.0025 ETH  30.7h left  1 subs  Verdikta awareness post in Turkish
+      #315  0.0025 ETH  30.7h left  0 subs  Verdikta awareness post in Korean
+      #308  0.0025 ETH  24.7h left  1 subs  Verdikta awareness post in Japanese (日本語)
+      #307  0.0025 ETH  24.7h left  2 subs  Verdikta awareness post in Hindi (हिन्दी)
+      #151  0.016 ETH  130.6h left  6 subs  Prove the Lonely Runner conjecture for k runners (
+      #150  0.016 ETH  130.5h left  0 subs  Prove the Erdős–Straus conjecture: 4/n = 1/a + 1/b
+      #149  0.016 ETH  130.5h left  0 subs  Determine the Ramsey number R(5,5): prove its exac
+      #148  0.016 ETH  130.5h left  0 subs  Prove or disprove the existence of a perfect cuboi
+
+[2] Picked bounty #330 (first open bounty with >= 2h left)
+
+[3] Reading details: GET /api/jobs/330
+    title:      Build a working agent tutorial: a script that finds a Verdikta bounty and walks the submission flow
+    type:       Code and Write-up
+    payout:     0.005 ETH (whole amount to the first passing submission; no platform fee)
+    threshold:  85%   class: 128   api status: OPEN
+    deadline:   2026-10-31T19:00:03.000Z
+    targeted:   no (open to anyone)
+    creator approval window: none
+    jury:       openai/gpt-5.6-terra, anthropic/claude-sonnet-5
+    rubric:     GET /api/jobs/330/rubric  (evaluationCid QmVqi4Voap7zeJnoL4epJMiz2wzY8MyhytiehoGpLDSj8M)
+
+[4] Reading live state from BountyEscrow 0xA741eFf41Bcf14793E61CEbB4179E05C9124D3f6 on Base (chainId 8453)
+    getEffectiveBountyStatus(330) = "OPEN"
+    requiredPrepay(330)           = 240000000000000 wei (0.00024 ETH)
+    /onchain-status: status=OPEN linkage=linked cached=false
+------------------------------------------------------------------------
+SUBMISSION FLOW for bounty #330 (what an agent WOULD do; dry run)
+------------------------------------------------------------------------
+Step 0  Validate files for free (no gas):
+        POST https://bounties.verdikta.org/api/jobs/330/submit/dry-run   (multipart: files=..., hunter=0xYOUR_WALLET_ADDRESS)
+        Send each deliverable as its own file (.md/.txt/.json/.png). Never one .zip:
+        the AI jurors cannot read archives and would see nothing.
+Step 1  Pin the work to IPFS:
+        POST https://bounties.verdikta.org/api/jobs/330/submit   -> response.submission.hunterCid
+        This only uploads. Nothing is on-chain yet.
+Step 2  PREPARE on-chain:
+        POST https://bounties.verdikta.org/api/jobs/330/submit/prepare  -> { transaction: { to, data, value, chainId } }
+        Check to == 0xA741eFf41Bcf14793E61CEbB4179E05C9124D3f6 and chainId == 8453, sign, broadcast.
+        Read the SubmissionPrepared event from the receipt -> submissionId, evalWallet.
+Step 3  START the oracle round (payable):
+        POST https://bounties.verdikta.org/api/jobs/330/submissions/<submissionId>/start   body { hunter }
+        Attach EXACTLY transaction.value as msg.value. That value is requiredPrepay(330)
+        read LIVE from the contract at submission time (it was 0.00024 ETH right now).
+        Never hard-code it: re-read it right before you sign. It is a refundable oracle
+        prepay of roughly 0.00024 ETH that in practice is usually spent in full.
+Step 4  ORACLE ROUND (typically a few minutes):
+        Independent AI arbiter nodes on the Verdikta network score the work against the
+        rubric published in advance; per-criterion scores are public and auditable.
+        Poll GET https://bounties.verdikta.org/api/jobs/330/submissions/<submissionId>/diagnose
+        until diagnosis.nextAction == "FINALIZE".
+Step 5  FINALIZE (required, even after a pass):
+        POST https://bounties.verdikta.org/api/jobs/330/submissions/<submissionId>/finalize   body { hunter }
+        Payment is NOT automatic. Finalize pays the whole bounty if this is the first
+        submission to clear the 85% threshold, marks it failed otherwise,
+        and refunds any unspent prepay.
+After   GET https://bounties.verdikta.org/api/jobs/330/submissions/<submissionId>/evaluation
+        shows the jury's scores and justification (check warnings[] is empty).
+------------------------------------------------------------------------
+Rules worth knowing: first passing submission wins (not best-of-all at the deadline);
+if nobody passes by the deadline the creator reclaims the full amount; a bounty cannot
+be cancelled or edited once created (rubric pinned to IPFS, fixed on-chain).
+done: 2026-10-24T19:32:21.603Z (UTC). Nothing was signed or sent.
+# exit code: 0
