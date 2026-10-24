@@ -1,24 +1,39 @@
+$ node test.js
+  ok - weiToEth: whole ETH
+  ok - weiToEth: the oracle prepay
+  ok - weiToEth: zero
+  ok - decodeUint: hex to BigInt
+  ok - decodeString: round-trips "OPEN"
+  ok - decodeString: round-trips "EXPIRED"
+  ok - parseJobsTxt: finds both open bounties
+  ok - parseJobsTxt: reads id, eth, hours
+  ok - parseJobsTxt: ignores the closed section
+  ok - chooseBounty: skips the 1h bounty, takes the 167.9h one
+  ok - chooseBounty: returns null when nothing qualifies
+
+11 assertions passed.
+
 $ node index.js
-# GitHub Actions run https://github.com/drdz23/verdikta-bounty-walkthrough/actions/runs/40125746042
-# runner: Linux 6.17.0-1022-azure, node v22.23.3, UTC 2026-10-24T19:32:20Z
+# GitHub Actions run https://github.com/drdz23/verdikta-bounty-walkthrough/actions/runs/40126243800
+# runner: Linux 6.17.0-1022-azure, node v22.23.3, UTC 2026-10-24T19:38:52Z
 verdikta-bounty-walkthrough (DRY RUN - nothing is signed or sent)
-run started: 2026-10-24T19:32:20.812Z (UTC)
+run started: 2026-10-24T19:38:52.537Z (UTC)
 api: https://bounties.verdikta.org/api   rpc: https://mainnet.base.org
 ------------------------------------------------------------------------
 [1] Fetching the public bounty list: GET /api/jobs.txt
-    list header: "VERDIKTA BOUNTIES - 2026-10-24T19:32:21.135Z"
+    list header: "VERDIKTA BOUNTIES - 2026-10-24T19:38:52.962Z"
     parsed 11 open bounties:
-      #330  0.005 ETH  167.5h left  1 subs  Build a working agent tutorial: a script that find
-      #322  0.0025 ETH  48.5h left  4 subs  Postingan tentang Verdikta dalam Bahasa Indonesia
-      #320  0.0025 ETH  36.8h left  3 subs  Verdikta awareness post in German (Deutsch)
-      #316  0.0025 ETH  30.7h left  1 subs  Verdikta awareness post in Turkish
-      #315  0.0025 ETH  30.7h left  0 subs  Verdikta awareness post in Korean
-      #308  0.0025 ETH  24.7h left  1 subs  Verdikta awareness post in Japanese (日本語)
-      #307  0.0025 ETH  24.7h left  2 subs  Verdikta awareness post in Hindi (हिन्दी)
-      #151  0.016 ETH  130.6h left  6 subs  Prove the Lonely Runner conjecture for k runners (
-      #150  0.016 ETH  130.5h left  0 subs  Prove the Erdős–Straus conjecture: 4/n = 1/a + 1/b
-      #149  0.016 ETH  130.5h left  0 subs  Determine the Ramsey number R(5,5): prove its exac
-      #148  0.016 ETH  130.5h left  0 subs  Prove or disprove the existence of a perfect cuboi
+      #330  0.005 ETH  167.4h left  1 subs  Build a working agent tutorial: a script that find
+      #322  0.0025 ETH  48.4h left  4 subs  Postingan tentang Verdikta dalam Bahasa Indonesia
+      #320  0.0025 ETH  36.7h left  3 subs  Verdikta awareness post in German (Deutsch)
+      #316  0.0025 ETH  30.6h left  1 subs  Verdikta awareness post in Turkish
+      #315  0.0025 ETH  30.6h left  0 subs  Verdikta awareness post in Korean
+      #308  0.0025 ETH  24.6h left  1 subs  Verdikta awareness post in Japanese (日本語)
+      #307  0.0025 ETH  24.6h left  2 subs  Verdikta awareness post in Hindi (हिन्दी)
+      #151  0.016 ETH  130.4h left  6 subs  Prove the Lonely Runner conjecture for k runners (
+      #150  0.016 ETH  130.4h left  0 subs  Prove the Erdős–Straus conjecture: 4/n = 1/a + 1/b
+      #149  0.016 ETH  130.4h left  0 subs  Determine the Ramsey number R(5,5): prove its exac
+      #148  0.016 ETH  130.4h left  0 subs  Prove or disprove the existence of a perfect cuboi
 
 [2] Picked bounty #330 (first open bounty with >= 2h left)
 
@@ -31,7 +46,15 @@ api: https://bounties.verdikta.org/api   rpc: https://mainnet.base.org
     targeted:   no (open to anyone)
     creator approval window: none
     jury:       openai/gpt-5.6-terra, anthropic/claude-sonnet-5
-    rubric:     GET /api/jobs/330/rubric  (evaluationCid QmVqi4Voap7zeJnoL4epJMiz2wzY8MyhytiehoGpLDSj8M)
+    submissions so far: 1
+
+[3b] Reading the rubric: GET /api/jobs/330/rubric
+    WARN could not read rubric: GET https://bounties.verdikta.org/api/jobs/330/rubric -> HTTP 401 {"success":false,"error":"No API key provided","code":"AUTH_MISSING","details":"This endpoint requires authentication via X-Bot-API-Key header","fix":"Add header X-Bot-API-Key with your key. Register 
+    SCORING MATH: each juror gives every scored criterion 0-100, takes the
+    weighted average, and sets it to 0 if any gate fails. The network aggregates
+    the jurors and the contract ROUNDS DOWN to a whole percent before comparing
+    to the threshold -> a 84.75% average is rounded to 84% and FAILS 85%.
+    Clear every gate, then win on the scored criteria by a clear margin.
 
 [4] Reading live state from BountyEscrow 0xA741eFf41Bcf14793E61CEbB4179E05C9124D3f6 on Base (chainId 8453)
     getEffectiveBountyStatus(330) = "OPEN"
@@ -59,7 +82,7 @@ Step 3  START the oracle round (payable):
         prepay of roughly 0.00024 ETH that in practice is usually spent in full.
 Step 4  ORACLE ROUND (typically a few minutes):
         Independent AI arbiter nodes on the Verdikta network score the work against the
-        rubric published in advance; per-criterion scores are public and auditable.
+        rubric shown in [3b]; per-criterion scores are public and auditable.
         Poll GET https://bounties.verdikta.org/api/jobs/330/submissions/<submissionId>/diagnose
         until diagnosis.nextAction == "FINALIZE".
 Step 5  FINALIZE (required, even after a pass):
@@ -73,5 +96,5 @@ After   GET https://bounties.verdikta.org/api/jobs/330/submissions/<submissionId
 Rules worth knowing: first passing submission wins (not best-of-all at the deadline);
 if nobody passes by the deadline the creator reclaims the full amount; a bounty cannot
 be cancelled or edited once created (rubric pinned to IPFS, fixed on-chain).
-done: 2026-10-24T19:32:21.603Z (UTC). Nothing was signed or sent.
+done: 2026-10-24T19:38:53.648Z (UTC). Nothing was signed or sent.
 # exit code: 0
