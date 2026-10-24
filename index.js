@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 // verdikta-bounty-walkthrough
-// A DRY-RUN tutorial for AI-agent developers: find an open Verdikta bounty
-// and print, step by step, how an agent would submit work to it.
+// A DRY-RUN tutorial for AI-agent developers: find an open Verdikta bounty,
+// inspect how it will be judged, and print the full submission flow for it.
 //
-// It only READS data: the public bounty list, two public job endpoints and
-// two eth_call reads on Base. It never signs, never sends a transaction and
-// never spends anything. No API key, no wallet, no dependencies (Node 18+).
+// It only READS data: the public bounty list, two public job endpoints, the
+// public rubric, and two eth_call reads on Base. It never signs, never sends a
+// transaction and never spends anything. No API key, no wallet, no deps (Node 18+).
 //
 // Usage:
-//   node index.js            # pick the first open bounty with >= 2h left
+//   node index.js            # pick the first OPEN bounty with >= 2h left
 //   node index.js --id 330   # walk a specific bounty
 //
 // Optional env vars:
@@ -33,7 +33,7 @@ const SEL = {
   getEffectiveBountyStatus: '0x5a12ff6d', // getEffectiveBountyStatus(uint256) -> string
 };
 
-// ---------- small helpers ----------
+// ---------- helpers (exported for test.js) ----------
 
 const log = (...a) => console.log(...a);
 const hr = () => log('-'.repeat(72));
@@ -43,6 +43,54 @@ function weiToEth(wei) {
   const whole = w / 10n ** 18n;
   const frac = (w % 10n ** 18n).toString().padStart(18, '0').replace(/0+$/, '');
   return frac ? `${whole}.${frac}` : `${whole}`;
+}
+
+// ABI-decode a single uint256 return value.
+function decodeUint(hex) {
+  return BigInt(hex);
+}
+
+// ABI-decode a single dynamic `string` return value:
+// word 0 = offset, word at offset = length, then the UTF-8 bytes.
+function decodeString(hex) {
+  const data = hex.slice(2);
+  const offset = Number(BigInt('0x' + data.slice(0, 64))) * 2;
+  const len = Number(BigInt('0x' + data.slice(offset, offset + 64)));
+  const bytes = data.slice(offset + 64, offset + 64 + len * 2);
+  return Buffer.from(bytes, 'hex').toString('utf8');
+}
+
+// Parse one bounty line of /api/jobs.txt, e.g.
+// "#330 | Build a ... | 0.005 ETH | deadline: 2026-10-31T... | 167.9h left | 0 submissions"
+const LINE_RE = /^#(\d+) \| (.+) \| ([\d.eE+-]+) ETH \| deadline: (\S+) \| ([\d.]+)h left \| (\d+) submissions?/;
+
+function parseJobsTxt(text) {
+  // Only the OPEN section; stop before RECENTLY CLOSED so closed bounties never leak in.
+  const openPart = text.split(/RECENTLY CLOSED/)[0];
+  const jobs = [];
+  for (const line of openPart.split('\n')) {
+    const m = line.trim().match(LINE_RE);
+    if (m) {
+      jobs.push({
+        id: Number(m[1]), title: m[2], eth: m[3], deadline: m[4],
+        hoursLeft: Number(m[5]), submissions: Number(m[6]),
+      });
+    }
+  }
+  return jobs;
+}
+
+// Choose a bounty to walk: the first one that still has real time left.
+function chooseBounty(jobs, minHours = MIN_HOURS_LEFT) {
+  return jobs.find((j) => j.hoursLeft >= minHours) || null;
+}
+
+function argId() {
+  const i = process.argv.indexOf('--id');
+  if (i === -1) return null;
+  const n = Number(process.argv[i + 1]);
+  if (!Number.isInteger(n) || n < 0) throw new Error('--id needs a bounty number, e.g. --id 330');
+  return n;
 }
 
 async function httpGet(url, { json = true } = {}) {
@@ -81,47 +129,7 @@ async function ethCall(selector, bountyId) {
   return out.result; // 0x-prefixed hex
 }
 
-// ABI-decode a single uint256 return value.
-function decodeUint(hex) {
-  return BigInt(hex);
-}
-
-// ABI-decode a single dynamic `string` return value:
-// word 0 = offset, word at offset = length, then the UTF-8 bytes.
-function decodeString(hex) {
-  const data = hex.slice(2);
-  const offset = Number(BigInt('0x' + data.slice(0, 64))) * 2;
-  const len = Number(BigInt('0x' + data.slice(offset, offset + 64)));
-  const bytes = data.slice(offset + 64, offset + 64 + len * 2);
-  return Buffer.from(bytes, 'hex').toString('utf8');
-}
-
-// Parse one bounty line of /api/jobs.txt, e.g.
-// "#330 | Build a ... | 0.005 ETH | deadline: 2026-10-31T... | 167.9h left | 0 submissions"
-const LINE_RE = /^#(\d+) \| (.+) \| ([\d.eE+-]+) ETH \| deadline: (\S+) \| ([\d.]+)h left \| (\d+) submissions?/;
-
-function parseJobsTxt(text) {
-  const openPart = text.split(/RECENTLY CLOSED/)[0];
-  const jobs = [];
-  for (const line of openPart.split('\n')) {
-    const m = line.trim().match(LINE_RE);
-    if (m) {
-      jobs.push({
-        id: Number(m[1]), title: m[2], eth: m[3], deadline: m[4],
-        hoursLeft: Number(m[5]), submissions: Number(m[6]),
-      });
-    }
-  }
-  return jobs;
-}
-
-function argId() {
-  const i = process.argv.indexOf('--id');
-  if (i === -1) return null;
-  const n = Number(process.argv[i + 1]);
-  if (!Number.isInteger(n) || n < 0) throw new Error('--id needs a bounty number, e.g. --id 330');
-  return n;
-}
+module.exports = { weiToEth, decodeUint, decodeString, parseJobsTxt, chooseBounty };
 
 // ---------- main ----------
 
@@ -150,7 +158,7 @@ async function main() {
     id = wanted;
     log(`\n[2] Using bounty #${id} from --id`);
   } else {
-    const pick = open.find((j) => j.hoursLeft >= MIN_HOURS_LEFT);
+    const pick = chooseBounty(open);
     if (!pick) throw new Error(`no open bounty with >= ${MIN_HOURS_LEFT}h left`);
     id = pick.id;
     log(`\n[2] Picked bounty #${id} (first open bounty with >= ${MIN_HOURS_LEFT}h left)`);
@@ -170,7 +178,31 @@ async function main() {
   if (Array.isArray(job.juryNodes)) {
     log(`    jury:       ${job.juryNodes.map((n) => `${n.provider}/${n.model}`).join(', ')}`);
   }
-  log(`    rubric:     GET /api/jobs/${id}/rubric  (evaluationCid ${job.evaluationCid})`);
+  log(`    submissions so far: ${job.submissionCount}`);
+
+  // 3b. The rubric: how the work will actually be judged. This is the part an
+  //     agent developer most needs to understand BEFORE spending anything.
+  log(`\n[3b] Reading the rubric: GET /api/jobs/${id}/rubric`);
+  let threshold = Number(job.threshold);
+  try {
+    const rub = await httpGet(`${API}/jobs/${id}/rubric`);
+    const criteria = rub.criteria || (rub.rubricJson && rub.rubricJson.criteria) || [];
+    const gates = criteria.filter((c) => c.must);
+    const scored = criteria.filter((c) => !c.must);
+    log(`    MUST-PASS gates (fail any one -> score 0, rejected):`);
+    for (const c of gates) log(`      [gate] ${c.id}: ${String(c.description || '').slice(0, 90)}`);
+    log(`    SCORED criteria (weighted average -> compared to the ${threshold}% threshold):`);
+    for (const c of scored) log(`      [w=${c.weight}] ${c.id}: ${String(c.description || '').slice(0, 85)}`);
+    const sum = scored.reduce((a, c) => a + Number(c.weight || 0), 0);
+    log(`    (scored weights sum to ${sum.toFixed(3)})`);
+  } catch (err) {
+    log(`    WARN could not read rubric: ${err.message}`);
+  }
+  log(`    SCORING MATH: each juror gives every scored criterion 0-100, takes the`);
+  log(`    weighted average, and sets it to 0 if any gate fails. The network aggregates`);
+  log(`    the jurors and the contract ROUNDS DOWN to a whole percent before comparing`);
+  log(`    to the threshold -> a ${threshold - 0.25}% average is rounded to ${Math.floor(threshold - 0.25)}% and FAILS ${threshold}%.`);
+  log(`    Clear every gate, then win on the scored criteria by a clear margin.`);
 
   // 4. Live chain reads. The chain is the source of truth.
   log(`\n[4] Reading live state from BountyEscrow ${ESCROW} on Base (chainId ${BASE_CHAIN_ID})`);
@@ -196,7 +228,8 @@ async function main() {
     log(`    WARN /onchain-status unavailable: ${err.message}`);
   }
   if (chainStatus && chainStatus !== 'OPEN') {
-    log(`    NOTE bounty is ${chainStatus} on-chain, so a real agent would stop here.`);
+    log(`    NOTE bounty is ${chainStatus} on-chain, so a real agent would stop here`);
+    log(`         instead of submitting. (This dry run still prints the flow below.)`);
   }
 
   // 5. The submission flow, printed as a plan.
@@ -227,13 +260,13 @@ async function main() {
         prepay of roughly 0.00024 ETH that in practice is usually spent in full.`);
   log(`Step 4  ORACLE ROUND (typically a few minutes):
         Independent AI arbiter nodes on the Verdikta network score the work against the
-        rubric published in advance; per-criterion scores are public and auditable.
+        rubric shown in [3b]; per-criterion scores are public and auditable.
         Poll GET ${API}/jobs/${id}/submissions/<submissionId>/diagnose
         until diagnosis.nextAction == "FINALIZE".`);
   log(`Step 5  FINALIZE (required, even after a pass):
         POST ${API}/jobs/${id}/submissions/<submissionId>/finalize   body { hunter }
         Payment is NOT automatic. Finalize pays the whole bounty if this is the first
-        submission to clear the ${job.threshold}% threshold, marks it failed otherwise,
+        submission to clear the ${threshold}% threshold, marks it failed otherwise,
         and refunds any unspent prepay.`);
   log(`After   GET ${API}/jobs/${id}/submissions/<submissionId>/evaluation
         shows the jury's scores and justification (check warnings[] is empty).`);
@@ -244,7 +277,9 @@ be cancelled or edited once created (rubric pinned to IPFS, fixed on-chain).`);
   log(`done: ${new Date().toISOString()} (UTC). Nothing was signed or sent.`);
 }
 
-main().catch((err) => {
-  console.error(`ERROR: ${err.message}`);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(`ERROR: ${err.message}`);
+    process.exit(1);
+  });
+}
