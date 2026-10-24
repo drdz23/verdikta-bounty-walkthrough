@@ -3,7 +3,11 @@ name: Run tutorial (dry run)
 on:
   push:
     branches: [main]
+    paths: ['index.js', '.github/workflows/run.yml']
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   run:
@@ -12,13 +16,20 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: node index.js
         run: |
-          date -u '+runner UTC time: %Y-%m-%dT%H:%M:%SZ'
-          node --version
-          node index.js 2>&1 | tee run-output.txt
-      - uses: actions/upload-artifact@v4
-        with:
-          name: run-output
-          path: run-output.txt
+          {
+            echo "\$ node index.js"
+            echo "# GitHub Actions run ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo "# runner: $(uname -sr), node $(node --version), UTC $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            node index.js 2>&1
+            echo "# exit code: $?"
+          } | tee run-output.txt
+      - name: Commit run output to the repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add run-output.txt
+          git commit -m "Run output from Actions run ${GITHUB_RUN_ID}" || echo "nothing to commit"
+          git push
