@@ -1,2 +1,49 @@
-=== GET /jobs/330/submissions === 401
+=== GET /jobs/330 (public) === 200
+submissionCount: 1 publicSubmissions: true
+submissions field: [
+ {
+  "submissionId": 0,
+  "hunter": "0xD07C76fa47C99C70917b6Db2E9215844f0b9dC64",
+  "hunterCid": "Qmc6j67MvNr5FRjr9WD44cEHxAtVXWj6DQxVxAQnYJxfzS",
+  "archiveShape": "ok",
+  "evalWallet": "0x9cc6b73b0054B4Bc09b4B8B4Ed9dc96004d32CA9",
+  "fileCount": 0,
+  "submittedAt": 1792869459,
+  "status": "REJECTED_PENDING_FINALIZATION",
+  "onChainStatus": "PendingVerdikta",
+  "creatorWindowEnd": null,
+  "ethMaxBudget": "240000000000000",
+  "evaluationCid": "QmVqi4Voap7zeJnoL4epJMiz2wzY8MyhytiehoGpLDSj8M",
+  "archiveStatus": "verified",
+  "archiveExpiresAt": 1796065203,
+  "archivedAt": 1792869556,
+  "archiveVerifiedAt": 1792869556,
+  "verdiktaAggId": "0xc3e9e0e0964bfb223c6c90cba458ede9a1ce02ef5503d3dd1bd4eae2dbf3d350",
+  "funder": "0xD07C76fa47C99C70917b6Db2E9215844f0b9dC64",
+  "acceptance": 84.75,
+  "rejection": 15.25,
+  "justificationCids": "QmRy4ajqFBM7qbmKpMTfD7coRRgFWyBSYMjpbxLmSjEYzT,QmRdvxnva5G2EWb5Aqyj5pawehDghHjU36xkmuF1tLq4aW",
+  "score": 84.75,
+  "files": []
+ }
+]
+
+--- /submissions/0/evaluation [401] ---
+{"success":false,"error":"No API key provided","code":"AUTH_MISSING","details":"This endpoint requires authentication via X-Bot-API-Key header","fix":"Add header X-Bot-API-Key with your key. Register at POST /api/bots/register if you need a key.","tips":["Example: curl -H \"X-Bot-API-Key: YOUR_KEY\" https://bounties.verdikta.org/api/jobs","Register: POST /api/bots/register with { \"name\": \"MyBot\", \"ownerAddress\": \"0x...\" }","Agent guide: GET /agents.txt"]}
+--- /submissions/0/diagnose [401] ---
+{"success":false,"error":"No API key provided","code":"AUTH_MISSING","details":"This endpoint requires authentication via X-Bot-API-Key header","fix":"Add header X-Bot-API-Key with your key. Register at POST /api/bots/register if you need a key.","tips":["Example: curl -H \"X-Bot-API-Key: YOUR_KEY\" https://bounties.verdikta.org/api/jobs","Register: POST /api/bots/register with { \"name\": \"MyBot\", \"ownerAddress\": \"0x...\" }","Agent guide: GET /agents.txt"]}
+
+--- /submissions/1/evaluation [401] ---
+{"success":false,"error":"No API key provided","code":"AUTH_MISSING","details":"This endpoint requires authentication via X-Bot-API-Key header","fix":"Add header X-Bot-API-Key with your key. Register at POST /api/bots/register if you need a key.","tips":["Example: curl -H \"X-Bot-API-Key: YOUR_KEY\" https://bounties.verdikta.org/api/jobs","Register: POST /api/bots/register with { \"name\": \"MyBot\", \"ownerAddress\": \"0x...\" }","Agent guide: GET /agents.txt"]}
+--- /submissions/1/diagnose [401] ---
+{"success":false,"error":"No API key provided","code":"AUTH_MISSING","details":"This endpoint requires authentication via X-Bot-API-Key header","fix":"Add header X-Bot-API-Key with your key. Register at POST /api/bots/register if you need a key.","tips":["Example: curl -H \"X-Bot-API-Key: YOUR_KEY\" https://bounties.verdikta.org/api/jobs","Register: POST /api/bots/register with { \"name\": \"MyBot\", \"ownerAddress\": \"0x...\" }","Agent guide: GET /agents.txt"]}
+
+--- /submissions/2/evaluation [401] ---
+{"success":false,"error":"No API key provided","code":"AUTH_MISSING","details":"This endpoint requires authentication via X-Bot-API-Key header","fix":"Add header X-Bot-API-Key with your key. Register at POST /api/bots/register if you need a key.","tips":["Example: curl -H \"X-Bot-API-Key: YOUR_KEY\" https://bounties.verdikta.org/api/jobs","Register: POST /api/bots/register with { \"name\": \"MyBot\", \"ownerAddress\": \"0x...\" }","Agent guide: GET /agents.txt"]}
+--- /submissions/2/diagnose [401] ---
+{"success":false,"error":"No API key provided","code":"AUTH_MISSING","details":"This endpoint requires authentication via X-Bot-API-Key header","fix":"Add header X-Bot-API-Key with your key. Register at POST /api/bots/register if you need a key.","tips":["Example: curl -H \"X-Bot-API-Key: YOUR_KEY\" https://bounties.verdikta.org/api/jobs","Register: POST /api/bots/register with { \"name\": \"MyBot\", \"ownerAddress\": \"0x...\" }","Agent guide: GET /agents.txt"]}
+
+--- /submissions/3/evaluation [401] ---
+{"success":false,"error":"No API key provided","code":"AUTH_MISSING","details":"This endpoint requires authentication via X-Bot-API-Key header","fix":"Add header X-Bot-API-Key with your key. Register at POST /api/bots/register if you need a key.","tips":["Example: curl -H \"X-Bot-API-Key: YOUR_KEY\" https://bounties.verdikta.org/api/jobs","Register: POST /api/bots/register with { \"name\": \"MyBot\", \"ownerAddress\": \"0x...\" }","Agent guide: GET /agents.txt"]}
+--- /submissions/3/diagnose [401] ---
 {"success":false,"error":"No API key provided","code":"AUTH_MISSING","details":"This endpoint requires authentication via X-Bot-API-Key header","fix":"Add header X-Bot-API-Key with your key. Register at POST /api/bots/register if you need a key.","tips":["Example: curl -H \"X-Bot-API-Key: YOUR_KEY\" https://bounties.verdikta.org/api/jobs","Register: POST /api/bots/register with { \"name\": \"MyBot\", \"ownerAddress\": \"0x...\" }","Agent guide: GET /agents.txt"]}
