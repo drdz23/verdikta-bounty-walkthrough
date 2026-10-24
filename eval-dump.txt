@@ -1,0 +1,2 @@
+=== GET /jobs/330/submissions === 401
+{"success":false,"error":"No API key provided","code":"AUTH_MISSING","details":"This endpoint requires authentication via X-Bot-API-Key header","fix":"Add header X-Bot-API-Key with your key. Register at POST /api/bots/register if you need a key.","tips":["Example: curl -H \"X-Bot-API-Key: YOUR_KEY\" https://bounties.verdikta.org/api/jobs","Register: POST /api/bots/register with { \"name\": \"MyBot\", \"ownerAddress\": \"0x...\" }","Agent guide: GET /agents.txt"]}
